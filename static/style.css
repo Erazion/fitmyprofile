@@ -87,3 +87,55 @@ body {
   font-size: 0.8rem;
   color: #8b92b3;
 }
+
+.fmp-section {
+  padding: 2rem 0;
+}
+
+.fmp-subtitle {
+  color: #c2c6dd;
+  margin-bottom: 2rem;
+}
+
+.fmp-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 700px;
+}
+
+.fmp-label {
+  font-weight: 600;
+  margin-bottom: 0.4rem;
+}
+
+.fmp-input,
+.fmp-textarea {
+  padding: 0.9rem;
+  border-radius: 8px;
+  border: 1px solid #2b324a;
+  background: #111626;
+  color: #e3e3f7;
+}
+
+.fmp-input:focus,
+.fmp-textarea:focus {
+  outline: none;
+  border-color: #1ccad8;
+}
+
+.fmp-pre {
+  background: #111626;
+  padding: 1rem;
+  border-radius: 8px;
+  white-space: pre-wrap;
+  color: #d2d6ec;
+  margin-bottom: 2rem;
+}
+
+.fmp-result-block {
+  background: #111626;
+  padding: 1rem;
+  border-radius: 8px;
+  color: #d2d6ec;
+}

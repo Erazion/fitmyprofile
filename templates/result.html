@@ -1,0 +1,21 @@
+{% extends "base.html" %} {% block content %}
+<section class="fmp-section">
+  <h1>Analyse terminée</h1>
+
+  <p class="fmp-subtitle">
+    Voici un premier aperçu basé sur ton CV et l’offre. (Analyse IA complète à
+    venir.)
+  </p>
+
+  <h2>Extrait de ton CV</h2>
+  <pre class="fmp-pre">{{ cv_excerpt }}</pre>
+
+  <h2>Extrait de l'offre</h2>
+  <pre class="fmp-pre">{{ job_excerpt }}</pre>
+
+  <h2>Analyse</h2>
+  <div class="fmp-result-block">
+    <pre>{{ analysis }}</pre>
+  </div>
+</section>
+{% endblock %}

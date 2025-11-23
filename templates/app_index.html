@@ -1,0 +1,37 @@
+{% extends "base.html" %} {% block content %}
+<section class="fmp-section">
+  <h1>Analyser mon profil</h1>
+  <p class="fmp-subtitle">
+    Upload ton CV (.pdf ou .docx) et colle la description du poste.
+  </p>
+
+  <form
+    action="/analyze"
+    method="post"
+    enctype="multipart/form-data"
+    class="fmp-form"
+  >
+    <label class="fmp-label">CV (PDF ou DOCX)</label>
+    <input
+      type="file"
+      name="cv_file"
+      accept=".pdf,.docx"
+      required
+      class="fmp-input"
+    />
+
+    <label class="fmp-label">Description du poste</label>
+    <textarea
+      name="job_offer"
+      rows="8"
+      class="fmp-textarea"
+      required
+      placeholder="Colle ici l’offre d’emploi…"
+    ></textarea>
+
+    <button type="submit" class="fmp-btn fmp-btn-primary">
+      Analyser mon profil
+    </button>
+  </form>
+</section>
+{% endblock %}
