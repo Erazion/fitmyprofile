@@ -1,0 +1,89 @@
+body {
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+  background: #0b1020;
+  color: #f7f7ff;
+}
+
+.fmp-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.fmp-header {
+  border-bottom: 1px solid #22263a;
+  background: #0f1528;
+}
+
+.fmp-header-inner {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.fmp-logo {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-weight: 600;
+}
+
+.fmp-logo-icon {
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  border: 2px solid #1ccad8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  color: #1ccad8;
+}
+
+.fmp-logo-text {
+  letter-spacing: 0.03em;
+}
+
+.fmp-hero {
+  padding: 3rem 0;
+}
+
+.fmp-hero h1 {
+  font-size: 2.3rem;
+  margin-bottom: 0.8rem;
+}
+
+.fmp-hero p {
+  margin-bottom: 1.5rem;
+  color: #c2c6dd;
+}
+
+.fmp-btn {
+  display: inline-block;
+  padding: 0.75rem 1.4rem;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.fmp-btn-primary {
+  background: #1ccad8;
+  color: #05101b;
+}
+
+.fmp-hero-note {
+  margin-top: 1rem;
+  font-size: 0.9rem;
+  color: #8b92b3;
+}
+
+.fmp-footer {
+  border-top: 1px solid #22263a;
+  margin-top: 2rem;
+  padding: 1rem 0 2rem;
+  font-size: 0.8rem;
+  color: #8b92b3;
+}

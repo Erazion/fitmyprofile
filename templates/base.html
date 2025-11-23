@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Fit My Profile - FMP</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link href="/static/style.css" rel="stylesheet" />
+  </head>
+  <body>
+    <header class="fmp-header">
+      <div class="fmp-container fmp-header-inner">
+        <div class="fmp-logo">
+          <span class="fmp-logo-icon">↑</span>
+          <span class="fmp-logo-text">Fit My Profile</span>
+        </div>
+      </div>
+    </header>
+
+    <main class="fmp-container">{% block content %}{% endblock %}</main>
+
+    <footer class="fmp-footer">
+      <div class="fmp-container">
+        <small>© 2025 Fit My Profile — FMP</small>
+      </div>
+    </footer>
+  </body>
+</html>
