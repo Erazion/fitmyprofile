@@ -139,3 +139,23 @@ body {
   border-radius: 8px;
   color: #d2d6ec;
 }
+
+.fmp-analysis h2,
+.fmp-analysis h3 {
+  margin-top: 1.2rem;
+  margin-bottom: 0.4rem;
+  font-size: 1.1rem;
+}
+
+.fmp-analysis p {
+  margin: 0.4rem 0;
+}
+
+.fmp-analysis ul {
+  padding-left: 1.3rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.fmp-analysis li {
+  margin: 0.2rem 0;
+}

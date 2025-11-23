@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import markdown  # nouveau
 
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
@@ -82,6 +83,11 @@ async def analyze(
     job_text = clean_text(job_offer)
 
     # 4. Appel LLM (ou mock)
+    analysis_md = analyze_profile(cv_text, job_text)
+
+    # Convertir le markdown en HTML
+    analysis_html = markdown.markdown(analysis_md, extensions=["extra"])
+
     analysis = analyze_profile(cv_text, job_text)
 
     # On affiche seulement les 800 premiers caractères de chaque texte
@@ -94,7 +100,7 @@ async def analyze(
             "request": request,
             "cv_excerpt": cv_excerpt,
             "job_excerpt": job_excerpt,
-            "analysis": analysis,
+            "analysis_html": analysis_html,
         },
     )
 

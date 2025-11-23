@@ -14,8 +14,6 @@
   <pre class="fmp-pre">{{ job_excerpt }}</pre>
 
   <h2>Analyse</h2>
-  <div class="fmp-result-block">
-    <pre>{{ analysis }}</pre>
-  </div>
+  <div class="fmp-result-block fmp-analysis">{{ analysis_html | safe }}</div>
 </section>
 {% endblock %}
