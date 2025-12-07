@@ -1,27 +1,22 @@
 from __future__ import annotations
 
-import os
 import re
 
-from dotenv import load_dotenv
 import markdown
 from fastapi import FastAPI, Request, Form, UploadFile, File
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
+from .settings import settings
 from .upload_guard import validate_and_read_upload
 from .parse_cv import extract_text_from_validated_upload, clean_text
 from .llm_client import analyze_profile, rewrite_profile
 from .logging_conf import configure_logging
 from .rate_limit import RateLimitMiddleware
 
-# Charge le .env AVANT toute utilisation de OpenAI
-load_dotenv()
-
 # Configurer les logs
-log_level = os.getenv("LOG_LEVEL", "INFO")
-configure_logging(log_level)
+configure_logging(settings.LOG_LEVEL)
 
 app = FastAPI(title="Fit My Profile (FMP)")
 
@@ -30,8 +25,8 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
 # Rate limiting (simple, en mémoire)
-rate_per_minute = int(os.getenv("RATE_LIMIT_PER_MIN", "120"))
-rate_burst = int(os.getenv("RATE_LIMIT_BURST", "40"))
+rate_per_minute = settings.RATE_LIMIT_PER_MIN
+rate_burst = settings.RATE_LIMIT_BURST
 app.add_middleware(
     RateLimitMiddleware,
     rate_per_minute=rate_per_minute,
@@ -48,6 +43,11 @@ async def landing(request: Request):
         "landing.html",
         {"request": request},
     )
+
+
+@app.get("/health")
+async def health():
+    return JSONResponse({"status": "ok"})
 
 
 @app.get("/app", response_class=HTMLResponse)
@@ -160,3 +160,12 @@ async def pro_rewrite_form(request: Request):
 
 # Point d'entrée :
 # uvicorn backend.main:app --reload
+
+
+@app.exception_handler(Exception)
+async def internal_error_handler(request: Request, exc: Exception):
+    return templates.TemplateResponse(
+        "error_500.html",
+        {"request": request},
+        status_code=500,
+    )

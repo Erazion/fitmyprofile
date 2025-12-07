@@ -4,10 +4,8 @@ import logging
 import os
 from openai import OpenAI
 
-from dotenv import load_dotenv
 from .logging_conf import log_exception
-
-load_dotenv()
+from .settings import settings
 
 _client_cache: OpenAI | None = None
 
@@ -17,7 +15,7 @@ logger = logging.getLogger("fmp.llm")
 def _get_client() -> OpenAI | None:
     global _client_cache
 
-    api_key = os.getenv("OPENAI_API_KEY")
+    api_key = settings.OPENAI_API_KEY
     if not api_key:
         logger.warning("OPENAI_API_KEY non configurée, utilisation du mode mock.")
         _client_cache = None

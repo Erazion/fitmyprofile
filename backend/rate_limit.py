@@ -7,6 +7,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import Response, PlainTextResponse
 
+from .settings import settings
+
 
 class TokenBucket:
     def __init__(self, rate_per_minute: int, burst: int) -> None:
@@ -44,8 +46,8 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
     def __init__(
         self,
         app,
-        rate_per_minute: int = 120,
-        burst: int = 40,
+        rate_per_minute: int = settings.RATE_LIMIT_PER_MIN,
+        burst: int = settings.RATE_LIMIT_BURST,
     ) -> None:
         super().__init__(app)
         self.rate_per_minute = rate_per_minute
