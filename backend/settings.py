@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     ANALYTICS_DOMAIN: str | None = None
 
+    PUBLIC_BASE_URL: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = False

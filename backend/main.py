@@ -210,8 +210,9 @@ async def pro_checkout(request: Request):
             detail="Paiement indisponible : configuration Stripe manquante.",
         )
 
-    success_url = str(request.url_for("pro_rewrite_form")) + "?paid=1"
-    cancel_url = str(request.url_for("pro_page"))
+    base = (settings.PUBLIC_BASE_URL or str(request.base_url).rstrip("/")).rstrip("/")
+    success_url = f"{base}{request.url_for('pro_rewrite_form').path}?paid=1"
+    cancel_url = f"{base}{request.url_for('pro_page').path}"
 
     try:
         session = stripe.checkout.Session.create(
