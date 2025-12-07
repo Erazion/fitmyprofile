@@ -3,8 +3,8 @@ from __future__ import annotations
 import os
 import re
 
-import markdown
 from dotenv import load_dotenv
+import markdown
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -16,7 +16,7 @@ from .llm_client import analyze_profile, rewrite_profile
 from .logging_conf import configure_logging
 from .rate_limit import RateLimitMiddleware
 
-# Charger les variables d'environnement depuis .env si présent
+# Charge le .env AVANT toute utilisation de OpenAI
 load_dotenv()
 
 # Configurer les logs
@@ -118,27 +118,18 @@ async def pro_rewrite(
     cv_file: UploadFile = File(...),
     job_offer: str = Form(...),
 ):
-    """
-    Réécriture Pro : réutilise la même logique de parsing que /analyze,
-    mais appelle le moteur de réécriture.
-    """
-
-    # 1. Valider + lire le fichier CV
+    # 🔥 Validation & lecture fichier (comme /analyze)
     file_bytes = await validate_and_read_upload(cv_file)
-
-    # 2. Extraire le texte du CV
     cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
-
-    # 3. Nettoyer l’offre
     job_text = clean_text(job_offer)
 
-    # Extraits pour affichage
-    cv_excerpt = cv_text[:800] + ("…" if len(cv_text) > 800 else "")
-    job_excerpt = job_text[:800] + ("…" if len(job_text) > 800 else "")
-
-    # 4. Appel LLM pour la réécriture Pro
+    # 🔥 Appel modèle Pro (réécriture)
     rewrite_md = rewrite_profile(cv_text, job_text)
     rewrite_html = markdown.markdown(rewrite_md, extensions=["extra"])
+
+    # Extraits affichés UI
+    cv_excerpt = cv_text[:800] + ("…" if len(cv_text) > 800 else "")
+    job_excerpt = job_text[:800] + ("…" if len(job_text) > 800 else "")
 
     return templates.TemplateResponse(
         "pro_result.html",
