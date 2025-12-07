@@ -1,10 +1,12 @@
 from __future__ import annotations
 
+import logging
 import re
 
 import markdown
-from fastapi import FastAPI, Request, Form, UploadFile, File
-from fastapi.responses import HTMLResponse, JSONResponse
+import stripe
+from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException, status
+from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 
@@ -18,7 +20,12 @@ from .rate_limit import RateLimitMiddleware
 # Configurer les logs
 configure_logging(settings.LOG_LEVEL)
 
+logger = logging.getLogger("fmp.api")
+
 app = FastAPI(title="Fit My Profile (FMP)")
+
+if settings.STRIPE_SECRET_KEY:
+    stripe.api_key = settings.STRIPE_SECRET_KEY
 
 # Static & templates
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -118,6 +125,18 @@ async def pro_rewrite(
     cv_file: UploadFile = File(...),
     job_offer: str = Form(...),
 ):
+    access_granted = settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
+    if not access_granted:
+        return templates.TemplateResponse(
+            "pro_rewrite.html",
+            {
+                "request": request,
+                "access_granted": False,
+                "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+            },
+            status_code=status.HTTP_402_PAYMENT_REQUIRED,
+        )
+
     # 🔥 Validation & lecture fichier (comme /analyze)
     file_bytes = await validate_and_read_upload(cv_file)
     cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
@@ -138,6 +157,8 @@ async def pro_rewrite(
             "cv_excerpt": cv_excerpt,
             "job_excerpt": job_excerpt,
             "rewrite_html": rewrite_html,
+            "access_granted": True,
+            "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
         },
     )
 
@@ -152,9 +173,14 @@ async def pro_page(request: Request):
 
 @app.get("/pro/rewrite", response_class=HTMLResponse)
 async def pro_rewrite_form(request: Request):
+    access_granted = settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
     return templates.TemplateResponse(
         "pro_rewrite.html",
-        {"request": request},
+        {
+            "request": request,
+            "access_granted": access_granted,
+            "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+        },
     )
 
 
@@ -169,3 +195,39 @@ async def internal_error_handler(request: Request, exc: Exception):
         {"request": request},
         status_code=500,
     )
+
+
+@app.post("/pro/checkout")
+async def pro_checkout(request: Request):
+    if settings.USE_FAKE_CHECKOUT:
+        return RedirectResponse(
+            url=str(request.url_for("pro_rewrite_form")),
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+
+    if not settings.STRIPE_SECRET_KEY or not settings.STRIPE_PRICE_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Paiement indisponible : configuration Stripe manquante.",
+        )
+
+    success_url = str(request.url_for("pro_rewrite_form")) + "?paid=1"
+    cancel_url = str(request.url_for("pro_page"))
+
+    try:
+        session = stripe.checkout.Session.create(
+            mode="payment",
+            line_items=[{"price": settings.STRIPE_PRICE_ID, "quantity": 1}],
+            success_url=success_url,
+            cancel_url=cancel_url,
+        )
+        return RedirectResponse(
+            url=session.url,
+            status_code=status.HTTP_303_SEE_OTHER,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.exception("Erreur lors de la création de session Stripe: %s", exc)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Paiement indisponible : erreur Stripe.",
+        ) from exc

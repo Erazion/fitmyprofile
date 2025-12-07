@@ -7,10 +7,16 @@
     CV.
   </p>
 
+  {% if not access_granted and not use_fake_checkout %}
+  <div class="fmp-card">
+    <p style="margin-bottom: 1rem;">Paiement requis pour accéder à la réécriture Pro.</p>
+    <a class="fmp-btn fmp-btn-primary" href="/pro">Retour à la page Pro</a>
+  </div>
+  {% else %}
   <div class="fmp-card">
     <form
       id="fmp-form-pro"
-      action="/pro/rewrite"
+      action="/pro/rewrite{% if not use_fake_checkout %}?paid=1{% endif %}"
       method="post"
       enctype="multipart/form-data"
       class="fmp-form"
@@ -40,6 +46,7 @@
       </button>
     </form>
   </div>
+  {% endif %}
 </section>
 
 <script>

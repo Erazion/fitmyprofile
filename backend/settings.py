@@ -19,6 +19,9 @@ class Settings(BaseSettings):
     RATE_LIMIT_BURST: int = 40
     LOG_LEVEL: str = "INFO"
 
+    STRIPE_SECRET_KEY: str | None = None
+    STRIPE_PRICE_ID: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = False

@@ -16,8 +16,16 @@
     <pre>{{ job_excerpt }}</pre>
   </div>
 
+  {% if not access_granted and not use_fake_checkout %}
+  <h2>Réécriture Pro</h2>
+  <div class="fmp-result-block">
+    <p>Paiement requis pour afficher la réécriture.</p>
+    <a class="fmp-btn fmp-btn-primary" href="/pro">Retour à la page Pro</a>
+  </div>
+  {% else %}
   <h2>Réécriture Pro</h2>
   <div class="fmp-result-block fmp-analysis">{{ rewrite_html | safe }}</div>
+  {% endif %}
 
   <div style="margin-top: 2rem">
     <a href="/pro/rewrite" class="fmp-btn fmp-btn-secondary"
