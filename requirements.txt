@@ -8,3 +8,4 @@ pymupdf
 openai>=1.6.0
 markdown
 stripe
+pydantic-settings
