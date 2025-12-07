@@ -1,12 +1,10 @@
-# TODO: rewrite pro feature WIP
-
 from __future__ import annotations
 
 import os
 import re
 
-import markdown
 from dotenv import load_dotenv
+import markdown
 from fastapi import FastAPI, Request, Form, UploadFile, File
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
@@ -18,7 +16,7 @@ from .llm_client import analyze_profile, rewrite_profile
 from .logging_conf import configure_logging
 from .rate_limit import RateLimitMiddleware
 
-# Charger les variables d'environnement depuis .env si présent
+# Charge le .env AVANT toute utilisation de OpenAI
 load_dotenv()
 
 # Configurer les logs
