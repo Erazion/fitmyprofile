@@ -46,6 +46,9 @@
     if (!form || !submitBtn) return;
 
     form.addEventListener("submit", function () {
+      if (window.plausible) {
+        window.plausible("analyse_classique");
+      }
       // Empêcher le double clic sur le bouton
       submitBtn.disabled = true;
       submitBtn.classList.add("fmp-btn-loading");

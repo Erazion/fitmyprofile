@@ -31,6 +31,18 @@ if settings.STRIPE_SECRET_KEY:
 app.mount("/static", StaticFiles(directory="static"), name="static")
 templates = Jinja2Templates(directory="templates")
 
+
+def render_template(
+    name: str,
+    request: Request,
+    context: dict | None = None,
+    status_code: int = status.HTTP_200_OK,
+):
+    ctx = {"request": request, "analytics_domain": settings.ANALYTICS_DOMAIN}
+    if context:
+        ctx.update(context)
+    return templates.TemplateResponse(name, ctx, status_code=status_code)
+
 # Rate limiting (simple, en mémoire)
 rate_per_minute = settings.RATE_LIMIT_PER_MIN
 rate_burst = settings.RATE_LIMIT_BURST
@@ -46,10 +58,7 @@ async def landing(request: Request):
     """
     Page d'accueil très simple pour vérifier que tout fonctionne.
     """
-    return templates.TemplateResponse(
-        "landing.html",
-        {"request": request},
-    )
+    return render_template("landing.html", request)
 
 
 @app.get("/health")
@@ -59,10 +68,7 @@ async def health():
 
 @app.get("/app", response_class=HTMLResponse)
 async def app_index(request: Request):
-    return templates.TemplateResponse(
-        "app_index.html",
-        {"request": request},
-    )
+    return render_template("app_index.html", request)
 
 
 @app.post("/analyze", response_class=HTMLResponse)
@@ -107,10 +113,10 @@ async def analyze(
     cv_excerpt = cv_text[:800] + ("…" if len(cv_text) > 800 else "")
     job_excerpt = job_text[:800] + ("…" if len(job_text) > 800 else "")
 
-    return templates.TemplateResponse(
+    return render_template(
         "result.html",
+        request,
         {
-            "request": request,
             "cv_excerpt": cv_excerpt,
             "job_excerpt": job_excerpt,
             "analysis_html": analysis_html,
@@ -127,10 +133,10 @@ async def pro_rewrite(
 ):
     access_granted = settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
     if not access_granted:
-        return templates.TemplateResponse(
+        return render_template(
             "pro_rewrite.html",
+            request,
             {
-                "request": request,
                 "access_granted": False,
                 "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
             },
@@ -150,10 +156,10 @@ async def pro_rewrite(
     cv_excerpt = cv_text[:800] + ("…" if len(cv_text) > 800 else "")
     job_excerpt = job_text[:800] + ("…" if len(job_text) > 800 else "")
 
-    return templates.TemplateResponse(
+    return render_template(
         "pro_result.html",
+        request,
         {
-            "request": request,
             "cv_excerpt": cv_excerpt,
             "job_excerpt": job_excerpt,
             "rewrite_html": rewrite_html,
@@ -165,19 +171,16 @@ async def pro_rewrite(
 
 @app.get("/pro", response_class=HTMLResponse)
 async def pro_page(request: Request):
-    return templates.TemplateResponse(
-        "pro.html",
-        {"request": request},
-    )
+    return render_template("pro.html", request)
 
 
 @app.get("/pro/rewrite", response_class=HTMLResponse)
 async def pro_rewrite_form(request: Request):
     access_granted = settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
-    return templates.TemplateResponse(
+    return render_template(
         "pro_rewrite.html",
+        request,
         {
-            "request": request,
             "access_granted": access_granted,
             "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
         },
@@ -190,11 +193,7 @@ async def pro_rewrite_form(request: Request):
 
 @app.exception_handler(Exception)
 async def internal_error_handler(request: Request, exc: Exception):
-    return templates.TemplateResponse(
-        "error_500.html",
-        {"request": request},
-        status_code=500,
-    )
+    return render_template("error_500.html", request, status_code=500)
 
 
 @app.post("/pro/checkout")

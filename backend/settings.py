@@ -22,6 +22,8 @@ class Settings(BaseSettings):
     STRIPE_SECRET_KEY: str | None = None
     STRIPE_PRICE_ID: str | None = None
 
+    ANALYTICS_DOMAIN: str | None = None
+
     class Config:
         env_file = ".env"
         case_sensitive = False

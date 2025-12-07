@@ -28,11 +28,22 @@
   </p>
 
   <div style="margin-top: 2rem">
-    <form method="POST" action="/pro/checkout">
+    <form method="POST" action="/pro/checkout" id="pro-checkout-form">
       <button type="submit" class="fmp-btn fmp-btn-primary">
         Tester la réécriture Pro
       </button>
     </form>
   </div>
 </section>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("pro-checkout-form");
+    if (!form) return;
+    form.addEventListener("submit", function () {
+      if (window.plausible) {
+        window.plausible("pro_rewrite");
+      }
+    });
+  });
+</script>
 {% endblock %}
