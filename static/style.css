@@ -140,22 +140,249 @@ body {
   color: #d2d6ec;
 }
 
+/* Styling Markdown (LLM output) */
+.fmp-analysis h1,
 .fmp-analysis h2,
-.fmp-analysis h3 {
-  margin-top: 1.2rem;
-  margin-bottom: 0.4rem;
-  font-size: 1.1rem;
+.fmp-analysis h3,
+.fmp-analysis h4 {
+  font-weight: 600;
+  margin-top: 1rem;
+  margin-bottom: 0.6rem;
+  color: #ffffff;
 }
 
 .fmp-analysis p {
-  margin: 0.4rem 0;
+  margin: 0.5rem 0;
+  line-height: 1.6;
+  color: #d6d6d6;
 }
 
 .fmp-analysis ul {
-  padding-left: 1.3rem;
-  margin: 0.4rem 0 0.8rem;
+  padding-left: 1.4rem;
+  margin: 0.5rem 0 1rem;
 }
 
 .fmp-analysis li {
-  margin: 0.2rem 0;
+  margin: 0.3rem 0;
+  line-height: 1.5;
+}
+
+.fmp-analysis strong {
+  color: #fff;
+}
+
+.fmp-analysis code {
+  background: #2b2b2b;
+  padding: 2px 5px;
+  border-radius: 4px;
+}
+.fmp-btn[disabled] {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.fmp-btn-loading {
+  position: relative;
+  padding-left: 2.5rem; /* laisser la place au spinner */
+}
+
+.fmp-btn-loading::before {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  height: 16px;
+  border-radius: 999px;
+  border: 2px solid rgba(5, 16, 27, 0.3);
+  border-top-color: #05101b;
+  border-right-color: #05101b;
+  animation: fmp-spin 0.7s linear infinite;
+}
+
+@keyframes fmp-spin {
+  from {
+    transform: translateY(-50%) rotate(0deg);
+  }
+  to {
+    transform: translateY(-50%) rotate(360deg);
+  }
+}
+.fmp-form-loading {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+
+/* On réactive les events sur le bouton lui-même pour garder le hover/curseur */
+.fmp-form-loading .fmp-btn {
+  pointer-events: auto;
+}
+.fmp-form-disabled {
+  opacity: 0.6;
+  pointer-events: none;
+  position: relative;
+}
+/* === Overlay d'analyse === */
+.fmp-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 10, 25, 0.88);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.25s ease;
+}
+
+.fmp-overlay-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.fmp-overlay-inner {
+  background: #111626;
+  border-radius: 16px;
+  padding: 1.8rem 2.2rem;
+  max-width: 420px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+}
+
+.fmp-overlay-spinner {
+  width: 32px;
+  height: 32px;
+  margin: 0 auto 1rem;
+  border-radius: 999px;
+  border: 3px solid rgba(28, 202, 216, 0.25);
+  border-top-color: #1ccad8;
+  border-right-color: #1ccad8;
+  animation: fmp-spin 0.7s linear infinite;
+}
+
+.fmp-overlay-inner p {
+  margin: 0 0 1rem;
+  color: #e3e3f7;
+  font-size: 0.98rem;
+}
+
+/* barre de progression */
+.fmp-overlay-progress {
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: #22263a;
+  overflow: hidden;
+}
+
+#fmp-overlay-progress-bar {
+  width: 0%;
+  height: 100%;
+  border-radius: inherit;
+  background: #1ccad8;
+  transition: width 0.4s ease;
+}
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(10, 10, 20, 0.75);
+  backdrop-filter: blur(4px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.hidden {
+  display: none;
+}
+
+/* Spinner FMP */
+.spinner {
+  width: 45px;
+  height: 45px;
+  border: 4px solid rgba(255, 255, 255, 0.2);
+  border-top: 4px solid #00bcd4;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Dynamic text */
+.overlay-content p {
+  color: #fff;
+  font-size: 1.2rem;
+  text-align: center;
+  margin-bottom: 15px;
+}
+
+/* Progress bar */
+.progress-bar {
+  width: 260px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 5px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+#progress-inner {
+  height: 100%;
+  width: 0%;
+  background: #00bcd4;
+  transition: width 0.4s ease-out;
+}
+
+.fmp-score-block {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  margin: 1.5rem 0 2rem;
+}
+
+.fmp-score-circle {
+  width: 80px;
+  height: 80px;
+  border-radius: 999px;
+  border: 3px solid #1ccad8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  background: radial-gradient(circle at 30% 30%, #1ccad8 0, #05101b 55%);
+}
+
+.fmp-score-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #ffffff;
+  line-height: 1;
+}
+
+.fmp-score-max {
+  font-size: 0.8rem;
+  color: #c2c6dd;
+}
+
+.fmp-score-text p {
+  margin: 0;
+  color: #c2c6dd;
+  font-size: 0.95rem;
 }

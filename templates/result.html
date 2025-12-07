@@ -2,6 +2,21 @@
 <section class="fmp-section">
   <h1>Analyse terminée</h1>
 
+  {% if score is not none %}
+  <div class="fmp-score-block">
+    <div class="fmp-score-circle">
+      <span class="fmp-score-value">{{ score }}</span>
+      <span class="fmp-score-max">/100</span>
+    </div>
+    <div class="fmp-score-text">
+      <p>
+        Estimation du fit global entre ton profil et l’offre.<br />
+        Utilise le plan d’action ci-dessous pour viser un meilleur score.
+      </p>
+    </div>
+  </div>
+  {% endif %}
+
   <p class="fmp-subtitle">
     Voici un premier aperçu basé sur ton CV et l’offre. (Analyse IA complète à
     venir.)
@@ -15,5 +30,9 @@
 
   <h2>Analyse</h2>
   <div class="fmp-result-block fmp-analysis">{{ analysis_html | safe }}</div>
+
+  <div style="margin-top: 2rem">
+    <a href="/pro" class="fmp-btn fmp-btn-primary"> Découvrir FMP Pro </a>
+  </div>
 </section>
 {% endblock %}

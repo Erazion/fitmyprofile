@@ -1,0 +1,65 @@
+{% extends "base.html" %} {% block content %}
+<section class="fmp-section">
+  <h1>Réécriture Pro de ton profil</h1>
+  <p class="fmp-subtitle">
+    Upload ton CV et colle l'offre ciblée. FMP Pro va générer pour toi des
+    titres, accroches et expériences réécrites, prêtes à copier-coller dans ton
+    CV.
+  </p>
+
+  <div class="fmp-card">
+    <form
+      id="fmp-form-pro"
+      action="/pro/rewrite"
+      method="post"
+      enctype="multipart/form-data"
+      class="fmp-form"
+    >
+      <label class="fmp-label" for="cv_file">CV (PDF ou DOCX)</label>
+      <input
+        type="file"
+        id="cv_file"
+        name="cv_file"
+        accept=".pdf,.doc,.docx"
+        required
+        class="fmp-input-file"
+      />
+
+      <label class="fmp-label" for="job_offer">Description du poste</label>
+      <textarea
+        id="job_offer"
+        name="job_offer"
+        rows="10"
+        required
+        class="fmp-textarea"
+        placeholder="Colle ici l'offre d'emploi ou la description du poste ciblé."
+      ></textarea>
+
+      <button type="submit" id="fmp-submit-pro" class="fmp-btn fmp-btn-primary">
+        Générer la réécriture Pro
+      </button>
+    </form>
+  </div>
+</section>
+
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("fmp-form-pro");
+    const submitBtn = document.getElementById("fmp-submit-pro");
+
+    if (!form || !submitBtn) return;
+
+    form.addEventListener("submit", function () {
+      submitBtn.disabled = true;
+      submitBtn.classList.add("fmp-btn-loading");
+      submitBtn.innerText = "Réécriture en cours...";
+
+      form.classList.add("fmp-form-loading");
+      const textareas = form.querySelectorAll("textarea");
+      textareas.forEach((ta) => (ta.readOnly = true));
+
+      document.body.style.overflow = "hidden";
+    });
+  });
+</script>
+{% endblock %}

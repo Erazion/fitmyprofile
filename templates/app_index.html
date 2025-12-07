@@ -6,6 +6,7 @@
   </p>
 
   <form
+    id="fmp-form"
     action="/analyze"
     method="post"
     enctype="multipart/form-data"
@@ -29,9 +30,72 @@
       placeholder="Colle ici l’offre d’emploi…"
     ></textarea>
 
-    <button type="submit" class="fmp-btn fmp-btn-primary">
+    <button type="submit" id="fmp-submit" class="fmp-btn fmp-btn-primary">
       Analyser mon profil
     </button>
   </form>
 </section>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    const form = document.getElementById("fmp-form");
+    const submitBtn = document.getElementById("fmp-submit");
+    const overlay = document.getElementById("fmp-overlay");
+    const overlayText = document.getElementById("fmp-overlay-text");
+    const progressBar = document.getElementById("fmp-overlay-progress-bar");
+
+    if (!form || !submitBtn) return;
+
+    form.addEventListener("submit", function () {
+      // Empêcher le double clic sur le bouton
+      submitBtn.disabled = true;
+      submitBtn.classList.add("fmp-btn-loading");
+      submitBtn.innerText = "Analyse en cours...";
+
+      // Petit effet de "gel" visuel sur le formulaire
+      form.classList.add("fmp-form-loading");
+
+      // Afficher l'overlay
+      if (overlay) {
+        overlay.classList.add("fmp-overlay-visible");
+      }
+
+      // Phrases qui tournent
+      const steps = [
+        "Lecture de ton CV…",
+        "Analyse de l'offre et des exigences clés…",
+        "Comparaison des expériences et compétences…",
+        "Génération du score de fit et des forces…",
+        "Synthèse des points à améliorer…",
+        "Préparation des suggestions pour ton CV…",
+      ];
+
+      let index = 0;
+      let progress = 8;
+
+      if (overlayText) {
+        overlayText.textContent = steps[0];
+      }
+      if (progressBar) {
+        progressBar.style.width = progress + "%";
+      }
+
+      const interval = setInterval(function () {
+        index = (index + 1) % steps.length;
+        if (overlayText) {
+          overlayText.textContent = steps[index];
+        }
+
+        // progression fake mais crédible
+        progress = Math.min(96, progress + Math.floor(5 + Math.random() * 12));
+        if (progressBar) {
+          progressBar.style.width = progress + "%";
+        }
+      }, 1200);
+
+      // on ne nettoie pas l'interval ici : le changement de page (redirection /analyze)
+      // va détruire le contexte JS automatiquement
+    });
+  });
+</script>
+
 {% endblock %}

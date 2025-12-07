@@ -6,6 +6,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <link href="/static/style.css" rel="stylesheet" />
   </head>
+  <div id="analysis-overlay" class="overlay hidden">
+    <div class="overlay-content">
+      <div class="spinner"></div>
+      <p id="dynamic-text">Analyse en cours…</p>
+      <div class="progress-bar">
+        <div id="progress-inner"></div>
+      </div>
+    </div>
+  </div>
+
   <body>
     <header class="fmp-header">
       <div class="fmp-container fmp-header-inner">
@@ -18,10 +28,77 @@
 
     <main class="fmp-container">{% block content %}{% endblock %}</main>
 
+    <div id="fmp-overlay" class="fmp-overlay">
+      <div class="fmp-overlay-inner">
+        <div class="fmp-overlay-spinner"></div>
+        <p id="fmp-overlay-text">Analyse en cours…</p>
+        <div class="fmp-overlay-progress">
+          <div id="fmp-overlay-progress-bar"></div>
+        </div>
+      </div>
+    </div>
+
     <footer class="fmp-footer">
       <div class="fmp-container">
         <small>© 2025 Fit My Profile — FMP</small>
       </div>
     </footer>
+    <script>
+      document.body.addEventListener("htmx:beforeRequest", function (evt) {
+        if (evt.detail.requestConfig.path === "/analyze") {
+          // 1. Affiche overlay
+          document
+            .getElementById("analysis-overlay")
+            .classList.remove("hidden");
+
+          // 2. Empêche le scroll
+          document.body.style.overflow = "hidden";
+
+          // 3. Texte dynamique
+          const messages = [
+            "Lecture du CV…",
+            "Analyse des compétences…",
+            "Comparaison avec l’offre…",
+            "Génération des recommandations…",
+            "Optimisation du score…",
+          ];
+          let step = 0;
+          const textEl = document.getElementById("dynamic-text");
+
+          window._loaderTextInterval = setInterval(() => {
+            textEl.textContent = messages[step % messages.length];
+            step++;
+          }, 1800);
+
+          // 4. Progression fake
+          let progress = 0;
+          const bar = document.getElementById("progress-inner");
+
+          window._progressInterval = setInterval(() => {
+            if (progress < 92) {
+              progress += Math.random() * 8;
+              bar.style.width = progress + "%";
+            }
+          }, 500);
+        }
+      });
+
+      // 5. Quand la réponse arrive → on nettoie
+      document.body.addEventListener("htmx:afterOnLoad", function (evt) {
+        if (evt.detail.requestConfig.path === "/analyze") {
+          // Stop intervals
+          clearInterval(window._loaderTextInterval);
+          clearInterval(window._progressInterval);
+
+          // Barre à 100%
+          document.getElementById("progress-inner").style.width = "100%";
+
+          setTimeout(() => {
+            document.getElementById("analysis-overlay").classList.add("hidden");
+            document.body.style.overflow = "auto";
+          }, 400);
+        }
+      });
+    </script>
   </body>
 </html>

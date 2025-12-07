@@ -23,12 +23,15 @@ def _get_client() -> OpenAI | None:
 def _build_messages(cv_text: str, job_text: str):
     """
     Construit les messages pour le LLM.
-    On vise un output structuré mais lisible.
+
+    Objectif : produire une analyse exploitable pour Fit My Profile,
+    avec un format stable et actionnable.
     """
     system = (
         "Tu es un expert en recrutement et en optimisation de candidatures. "
         "Tu aides un candidat à adapter son profil (CV, expérience, compétences) "
-        "à une offre précise. Réponds en français, de façon claire et directe."
+        "à une offre précise. Réponds en français, de façon claire, directe et utile. "
+        "Ton but est que la personne sache quoi CHANGER concrètement dans son CV."
     )
 
     user = f"""
@@ -44,14 +47,45 @@ Voici l'offre d'emploi :
 {job_text}
 ----
 
-1. Donne un score de fit global entre 0 et 100.
-2. Résume en 5 bullet points les forces du candidat pour ce poste.
-3. Liste les 5 gaps ou points faibles principaux pour cette offre.
-4. Propose une version retravaillée du titre de CV + 3 phrases d'accroche
-   pour l'entête du CV adaptées à cette offre.
-5. Suggère 5 mots-clés ou compétences à faire ressortir dans le CV.
+Tu dois IMPÉRATIVEMENT structurer ta réponse en suivant ce format :
 
-Format attendu (sections claires avec titres en markdown).
+1. Commence par une ligne unique de la forme :
+   "Score global : XX/100"
+   où XX est un entier entre 0 et 100.
+
+2. Puis, en markdown, génère les sections suivantes :
+
+## 1. Résumé du fit global
+- 3 à 5 phrases maximum
+- Donne une vision honnête mais constructive
+
+## 2. Forces principales pour ce poste
+- Liste en bullet points les 5 à 7 points forts du candidat
+- Mets en avant les expériences, compétences, résultats, mots-clés déjà alignés
+
+## 3. Points faibles / risques de non-sélection
+- Liste 5 à 7 points concrets qui peuvent poser problème
+- Tu peux parler de manque d'expérience, de mots-clés absents, de niveau de séniorité, etc.
+
+## 4. Plan d'action pour améliorer le CV
+- Sous forme de liste numérotée (1., 2., 3., …)
+- Chaque point doit être une action concrète sur le CV :
+  - ajouter une ligne précise,
+  - reformuler une expérience,
+  - mettre en avant certains mots,
+  - raccourcir une section, etc.
+
+## 5. Titre de CV + accroche optimisée
+- Propose 2 ou 3 versions de titre de CV (en une ligne)
+- Propose 2 ou 3 exemples de paragraphe d'accroche (3 à 5 phrases) adaptés à cette offre
+
+## 6. Compétences et mots-clés à ajouter ou renforcer
+- Liste :
+  - les hard skills à ajouter ou renforcer
+  - les soft skills pertinents
+  - les outils / technologies / environnements à mentionner
+
+Respecte bien la structure, les titres et l'ordre des sections.
 """
 
     return [
@@ -102,5 +136,103 @@ def analyze_profile(cv_text: str, job_text: str) -> str:
         return (
             "Une erreur est survenue lors de l'appel à l'IA.\n\n"
             "Détails techniques (pour le dev, à masquer côté front) :\n"
-            f"{exc}"
+            f"{type(exc).__name__}: {exc}"
+        )
+
+
+def _build_rewrite_messages(cv_text: str, job_text: str) -> list[dict[str, str]]:
+    system = (
+        "Tu es un expert en optimisation de CV et en recrutement. "
+        "Tu aides un candidat à adapter son CV à une offre précise. "
+        "Tu écris en français, de façon claire, concise et impactante. "
+        "Tu produis du texte prêt à copier-coller dans un CV moderne."
+    )
+
+    user = f"""
+Voici le CV du candidat (texte brut) :
+
+----
+{cv_text}
+----
+
+Voici l'offre d'emploi ciblée :
+
+----
+{job_text}
+----
+
+Ta mission : produire une RÉÉCRITURE PRO de certaines parties du CV, adaptée à cette offre.
+
+Réponds STRICTEMENT en markdown avec les sections suivantes :
+
+## 1. Titre de CV – 3 variantes
+- Propose 3 titres de CV percutants, en une ligne chacun.
+- Ils doivent être alignés avec l'offre (niveau, scope, secteur si possible).
+
+## 2. Paragraphe d'accroche – 3 variantes
+- Propose 3 paragraphes d'accroche (3 à 5 phrases chacun).
+- Style : clair, orienté résultats, sans bullshit.
+- Le candidat doit pouvoir les coller tels quels en haut de son CV.
+
+## 3. Expériences à réécrire
+- Identifie 1 ou 2 expériences du CV qui sont les plus pertinentes pour l'offre.
+- Pour chaque expérience, donne :
+  - **Intitulé + contexte** (1–2 lignes)
+  - **Version réécrite de la description** sous forme de bullet points (4 à 7 bullets)
+  - Mets en avant les résultats, les responsabilités et les éléments alignés avec l'offre.
+
+## 4. Mots-clés à insérer dans le CV
+- Liste les mots-clés (techniques + business) à insérer dans :
+  - le titre
+  - l'accroche
+  - les expériences
+- Sépare les catégories si nécessaire.
+
+Ne fais pas de blabla autour, respecte uniquement cette structure.
+"""
+
+    return [
+        {"role": "system", "content": system},
+        {"role": "user", "content": user},
+    ]
+
+
+def rewrite_profile(cv_text: str, job_text: str) -> str:
+    """
+    Génère une réécriture 'Pro' de certaines parties du CV :
+    titres, accroches, expériences clés.
+    """
+    client = _get_client()
+    if client is None:
+        # Fallback mock si pas de clé
+        return (
+            "## 1. Titre de CV – 3 variantes\n"
+            "- [MOCK] Titre 1 basé sur ton CV et l'offre\n"
+            "- [MOCK] Titre 2 plus orienté business\n"
+            "- [MOCK] Titre 3 plus orienté technique\n\n"
+            "## 2. Paragraphe d'accroche – 3 variantes\n"
+            "- [MOCK] Accroche 1…\n"
+            "- [MOCK] Accroche 2…\n"
+            "- [MOCK] Accroche 3…\n\n"
+            "## 3. Expériences à réécrire\n"
+            "- [MOCK] Exemple d'expérience réécrite…\n\n"
+            "## 4. Mots-clés à insérer\n"
+            "- [MOCK] Liste de mots-clés…\n"
+        )
+
+    messages = _build_rewrite_messages(cv_text, job_text)
+
+    try:
+        completion = client.chat.completions.create(
+            model=_get_model_name(),
+            messages=messages,
+            temperature=0.4,
+        )
+        return completion.choices[0].message.content or ""
+    except Exception as exc:  # noqa: BLE001
+        log_exception(exc, logger_name="fmp.llm")
+        return (
+            "Une erreur est survenue lors de la réécriture Pro.\n\n"
+            "Détails techniques (pour le dev, à masquer côté front) :\n"
+            f"{type(exc).__name__}: {exc}"
         )

@@ -1,0 +1,31 @@
+{% extends "base.html" %} {% block content %}
+<section class="fmp-section">
+  <h1>Réécriture Pro générée</h1>
+  <p class="fmp-subtitle">
+    Voici des propositions de titres, d'accroches et d'expériences réécrites que
+    tu peux directement intégrer dans ton CV.
+  </p>
+
+  <h2>Extrait de ton CV</h2>
+  <div class="fmp-result-block">
+    <pre>{{ cv_excerpt }}</pre>
+  </div>
+
+  <h2>Extrait de l'offre</h2>
+  <div class="fmp-result-block">
+    <pre>{{ job_excerpt }}</pre>
+  </div>
+
+  <h2>Réécriture Pro</h2>
+  <div class="fmp-result-block fmp-analysis">{{ rewrite_html | safe }}</div>
+
+  <div style="margin-top: 2rem">
+    <a href="/pro/rewrite" class="fmp-btn fmp-btn-secondary"
+      >Relancer une réécriture</a
+    >
+    <a href="/app" class="fmp-btn fmp-btn-ghost"
+      >Revenir à l'analyse classique</a
+    >
+  </div>
+</section>
+{% endblock %}
