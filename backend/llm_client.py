@@ -1,18 +1,17 @@
 from __future__ import annotations
 
 import logging
-import os
-from openai import OpenAI
+from openai import AsyncOpenAI
 
 from .logging_conf import log_exception
 from .settings import settings
 
-_client_cache: OpenAI | None = None
+_client_cache: AsyncOpenAI | None = None
 
 logger = logging.getLogger("fmp.llm")
 
 
-def _get_client() -> OpenAI | None:
+def _get_client() -> AsyncOpenAI | None:
     global _client_cache
 
     api_key = settings.OPENAI_API_KEY
@@ -22,7 +21,7 @@ def _get_client() -> OpenAI | None:
         return None
 
     if _client_cache is None:
-        _client_cache = OpenAI(api_key=api_key)
+        _client_cache = AsyncOpenAI(api_key=api_key)
 
     return _client_cache
 
@@ -101,7 +100,7 @@ Respecte bien la structure, les titres et l'ordre des sections.
     ]
 
 
-def analyze_profile(cv_text: str, job_text: str) -> str:
+async def analyze_profile(cv_text: str, job_text: str) -> str:
     """
     Analyse CV + offre via OpenAI.
     Si pas de clé API ou erreur, renvoie un texte explicatif + mock.
@@ -127,8 +126,8 @@ def analyze_profile(cv_text: str, job_text: str) -> str:
         )
 
     try:
-        completion = client.chat.completions.create(
-            model="gpt-4.1-mini",
+        completion = await client.chat.completions.create(
+            model="gpt-4o-mini",
             messages=_build_messages(cv_text, job_text),
             temperature=0.3,
             max_tokens=900,
@@ -197,7 +196,7 @@ Ne fais pas de blabla autour, respecte uniquement cette structure.
     ]
 
 
-def rewrite_profile(cv_text: str, job_text: str) -> str:
+async def rewrite_profile(cv_text: str, job_text: str) -> str:
     cv_text = (cv_text or "").strip()
     job_text = (job_text or "").strip()
 
@@ -216,8 +215,8 @@ def rewrite_profile(cv_text: str, job_text: str) -> str:
         )
 
     try:
-        completion = client.chat.completions.create(
-            model="gpt-4.1",
+        completion = await client.chat.completions.create(
+            model="gpt-4o",
             messages=_build_rewrite_messages(cv_text, job_text),
             temperature=0.4,
             max_tokens=900,
