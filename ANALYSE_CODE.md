@@ -330,3 +330,4 @@ Affichage réécriture (titres, accroches, expériences)
 - ✅ Architecture modulaire et extensible
 - ✅ Configuration flexible via variables d'environnement
 - ✅ Prêt pour déploiement Docker
+
