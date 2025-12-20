@@ -9,8 +9,88 @@
 
   {% if not access_granted and not use_fake_checkout %}
   <div class="fmp-card">
-    <p style="margin-bottom: 1rem;">Paiement requis pour accéder à la réécriture Pro.</p>
+    <p style="margin-bottom: 1rem">
+      Paiement requis pour accéder à la réécriture Pro.
+    </p>
     <a class="fmp-btn fmp-btn-primary" href="/pro">Retour à la page Pro</a>
+  </div>
+  {% elif has_session_data %}
+  <div class="fmp-card">
+    <div style="margin-bottom: 1.5rem">
+      <p style="margin-bottom: 0.5rem; color: #10b981; font-weight: 500">
+        ✓ Données de votre analyse précédente disponibles
+      </p>
+      <p style="margin-bottom: 1rem; color: #6b7280; font-size: 0.9rem">
+        Nous allons utiliser le CV et l'offre d'emploi que vous avez déjà
+        analysés. Pas besoin de les télécharger à nouveau !
+      </p>
+    </div>
+    <form
+      id="fmp-form-pro"
+      action="/pro/rewrite{% if not use_fake_checkout %}?paid=1{% endif %}"
+      method="post"
+      class="fmp-form"
+    >
+      <button type="submit" id="fmp-submit-pro" class="fmp-btn fmp-btn-primary">
+        Générer la réécriture Pro avec mes données
+      </button>
+    </form>
+    <div
+      style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #e5e7eb"
+    >
+      <p style="margin-bottom: 0.5rem; font-size: 0.9rem; color: #6b7280">
+        Vous souhaitez utiliser d'autres fichiers ?
+      </p>
+      <button
+        type="button"
+        id="fmp-show-form"
+        class="fmp-btn"
+        style="
+          background: transparent;
+          border: 1px solid #d1d5db;
+          color: #374151;
+        "
+      >
+        Télécharger de nouveaux fichiers
+      </button>
+    </div>
+  </div>
+  <div class="fmp-card" id="fmp-upload-form" style="display: none">
+    <form
+      id="fmp-form-pro-upload"
+      action="/pro/rewrite{% if not use_fake_checkout %}?paid=1{% endif %}"
+      method="post"
+      enctype="multipart/form-data"
+      class="fmp-form"
+    >
+      <label class="fmp-label" for="cv_file">CV (PDF ou DOCX)</label>
+      <input
+        type="file"
+        id="cv_file"
+        name="cv_file"
+        accept=".pdf,.doc,.docx"
+        required
+        class="fmp-input-file"
+      />
+
+      <label class="fmp-label" for="job_offer">Description du poste</label>
+      <textarea
+        id="job_offer"
+        name="job_offer"
+        rows="10"
+        required
+        class="fmp-textarea"
+        placeholder="Colle ici l'offre d'emploi ou la description du poste ciblé."
+      ></textarea>
+
+      <button
+        type="submit"
+        id="fmp-submit-pro-upload"
+        class="fmp-btn fmp-btn-primary"
+      >
+        Générer la réécriture Pro
+      </button>
+    </form>
   </div>
   {% else %}
   <div class="fmp-card">
@@ -53,20 +133,45 @@
   document.addEventListener("DOMContentLoaded", function () {
     const form = document.getElementById("fmp-form-pro");
     const submitBtn = document.getElementById("fmp-submit-pro");
+    const formUpload = document.getElementById("fmp-form-pro-upload");
+    const submitBtnUpload = document.getElementById("fmp-submit-pro-upload");
+    const showFormBtn = document.getElementById("fmp-show-form");
+    const uploadFormCard = document.getElementById("fmp-upload-form");
 
-    if (!form || !submitBtn) return;
+    // Gestion de l'affichage du formulaire d'upload si données en session
+    if (showFormBtn && uploadFormCard) {
+      showFormBtn.addEventListener("click", function () {
+        uploadFormCard.style.display = "block";
+        showFormBtn.closest(".fmp-card").style.display = "none";
+      });
+    }
 
-    form.addEventListener("submit", function () {
-      submitBtn.disabled = true;
-      submitBtn.classList.add("fmp-btn-loading");
-      submitBtn.innerText = "Réécriture en cours...";
+    // Gestion du formulaire principal (avec données de session)
+    if (form && submitBtn) {
+      form.addEventListener("submit", function () {
+        submitBtn.disabled = true;
+        submitBtn.classList.add("fmp-btn-loading");
+        submitBtn.innerText = "Réécriture en cours...";
 
-      form.classList.add("fmp-form-loading");
-      const textareas = form.querySelectorAll("textarea");
-      textareas.forEach((ta) => (ta.readOnly = true));
+        form.classList.add("fmp-form-loading");
+        document.body.style.overflow = "hidden";
+      });
+    }
 
-      document.body.style.overflow = "hidden";
-    });
+    // Gestion du formulaire d'upload (nouveaux fichiers)
+    if (formUpload && submitBtnUpload) {
+      formUpload.addEventListener("submit", function () {
+        submitBtnUpload.disabled = true;
+        submitBtnUpload.classList.add("fmp-btn-loading");
+        submitBtnUpload.innerText = "Réécriture en cours...";
+
+        formUpload.classList.add("fmp-form-loading");
+        const textareas = formUpload.querySelectorAll("textarea");
+        textareas.forEach((ta) => (ta.readOnly = true));
+
+        document.body.style.overflow = "hidden";
+      });
+    }
   });
 </script>
 {% endblock %}
