@@ -9,6 +9,7 @@ from fastapi import FastAPI, Request, Form, UploadFile, File, HTTPException, sta
 from fastapi.responses import HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+from starlette.middleware.sessions import SessionMiddleware
 
 from .settings import settings
 from .upload_guard import validate_and_read_upload
@@ -23,6 +24,12 @@ configure_logging(settings.LOG_LEVEL)
 logger = logging.getLogger("fmp.api")
 
 app = FastAPI(title="Fit My Profile (FMP)")
+
+# Session middleware
+app.add_middleware(
+    SessionMiddleware,
+    secret_key=settings.SESSION_SECRET_KEY,
+)
 
 if settings.STRIPE_SECRET_KEY:
     stripe.api_key = settings.STRIPE_SECRET_KEY
@@ -91,8 +98,12 @@ async def analyze(
     # 2. Extraire le texte du CV
     cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
 
-    # 3. Nettoyer l’offre
+    # 3. Nettoyer l'offre
     job_text = clean_text(job_offer)
+
+    # Stocker dans la session pour utilisation ultérieure
+    request.session["cv_text"] = cv_text
+    request.session["job_text"] = job_text
 
     # 4. Appel LLM (ou mock)
     analysis_md = await analyze_profile(cv_text, job_text)
@@ -129,8 +140,8 @@ async def analyze(
 @app.post("/pro/rewrite", response_class=HTMLResponse)
 async def pro_rewrite(
     request: Request,
-    cv_file: UploadFile = File(...),
-    job_offer: str = Form(...),
+    cv_file: UploadFile | None = File(None),
+    job_offer: str | None = Form(None),
 ):
     access_granted = (
         settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
@@ -146,10 +157,45 @@ async def pro_rewrite(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
         )
 
-    # 🔥 Validation & lecture fichier (comme /analyze)
-    file_bytes = await validate_and_read_upload(cv_file)
-    cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
-    job_text = clean_text(job_offer)
+    # Vérifier d'abord la session pour les données
+    cv_text: str | None = None
+    job_text: str | None = None
+
+    if "cv_text" in request.session and "job_text" in request.session:
+        cv_text = request.session["cv_text"]
+        job_text = request.session["job_text"]
+    elif cv_file and job_offer:
+        # Si pas de session, utiliser les données du formulaire
+        file_bytes = await validate_and_read_upload(cv_file)
+        cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
+        job_text = clean_text(job_offer)
+        # Stocker dans la session pour utilisation ultérieure
+        request.session["cv_text"] = cv_text
+        request.session["job_text"] = job_text
+    else:
+        # Aucune donnée disponible
+        return render_template(
+            "pro_rewrite.html",
+            request,
+            {
+                "access_granted": True,
+                "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+                "error": "Veuillez fournir un CV et une description de poste.",
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if not cv_text or not job_text:
+        return render_template(
+            "pro_rewrite.html",
+            request,
+            {
+                "access_granted": True,
+                "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+                "error": "Données manquantes. Veuillez réessayer.",
+            },
+            status_code=status.HTTP_400_BAD_REQUEST,
+        )
 
     # 🔥 Appel modèle Pro (réécriture)
     rewrite_md = await rewrite_profile(cv_text, job_text)
@@ -182,6 +228,33 @@ async def pro_rewrite_form(request: Request):
     access_granted = (
         settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
     )
+
+    # Si l'accès est accordé et que les données sont dans la session, traiter directement
+    if access_granted and "cv_text" in request.session and "job_text" in request.session:
+        cv_text = request.session.get("cv_text", "")
+        job_text = request.session.get("job_text", "")
+
+        if cv_text and job_text:
+            # Traiter directement avec les données de session
+            rewrite_md = await rewrite_profile(cv_text, job_text)
+            rewrite_html = markdown.markdown(rewrite_md, extensions=["extra"])
+
+            # Extraits affichés UI
+            cv_excerpt = cv_text[:800] + ("…" if len(cv_text) > 800 else "")
+            job_excerpt = job_text[:800] + ("…" if len(job_text) > 800 else "")
+
+            return render_template(
+                "pro_result.html",
+                request,
+                {
+                    "cv_excerpt": cv_excerpt,
+                    "job_excerpt": job_excerpt,
+                    "rewrite_html": rewrite_html,
+                    "access_granted": True,
+                    "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+                },
+            )
+
     return render_template(
         "pro_rewrite.html",
         request,
@@ -205,7 +278,7 @@ async def internal_error_handler(request: Request, exc: Exception):
 async def pro_checkout(request: Request):
     if settings.USE_FAKE_CHECKOUT:
         return RedirectResponse(
-            url=str(request.url_for("pro_rewrite_form")),
+            url=f"{request.url_for('pro_rewrite_form')}?paid=1",
             status_code=status.HTTP_303_SEE_OTHER,
         )
 

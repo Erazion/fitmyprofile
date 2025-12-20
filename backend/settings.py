@@ -11,6 +11,7 @@ class Settings(BaseSettings):
 
     OPENAI_API_KEY: str | None = None
     OPENROUTER_BASE_URL: str | None = None
+    OPENROUTER_APP_NAME: str | None = None
 
     PRICE_EUR: float = 4.90
     USE_FAKE_CHECKOUT: bool = True
@@ -25,6 +26,8 @@ class Settings(BaseSettings):
     ANALYTICS_DOMAIN: str | None = None
 
     PUBLIC_BASE_URL: str | None = None
+
+    SESSION_SECRET_KEY: str = "dev_secret"
 
     class Config:
         env_file = ".env"
