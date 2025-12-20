@@ -230,7 +230,11 @@ async def pro_rewrite_form(request: Request):
     )
 
     # Si l'accès est accordé et que les données sont dans la session, traiter directement
-    if access_granted and "cv_text" in request.session and "job_text" in request.session:
+    if (
+        access_granted
+        and "cv_text" in request.session
+        and "job_text" in request.session
+    ):
         cv_text = request.session.get("cv_text", "")
         job_text = request.session.get("job_text", "")
 
