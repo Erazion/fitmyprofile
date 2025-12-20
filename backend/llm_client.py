@@ -21,7 +21,25 @@ def _get_client() -> AsyncOpenAI | None:
         return None
 
     if _client_cache is None:
-        _client_cache = AsyncOpenAI(api_key=api_key)
+        # Support OpenRouter si OPENROUTER_BASE_URL est défini
+        base_url = settings.OPENROUTER_BASE_URL
+        if base_url:
+            logger.info("Utilisation d'OpenRouter avec base_url: %s", base_url)
+            # Configuration des headers pour OpenRouter (requis)
+            default_headers = {
+                "HTTP-Referer": settings.PUBLIC_BASE_URL
+                or "https://fitmyprofile.com",  # URL de votre site
+                "X-Title": settings.OPENROUTER_APP_NAME
+                or "Fit My Profile",  # Nom de l'application
+            }
+            _client_cache = AsyncOpenAI(
+                api_key=api_key,
+                base_url=base_url,
+                default_headers=default_headers,
+            )
+        else:
+            logger.info("Utilisation d'OpenAI standard")
+            _client_cache = AsyncOpenAI(api_key=api_key)
 
     return _client_cache
 
@@ -126,6 +144,7 @@ async def analyze_profile(cv_text: str, job_text: str) -> str:
         )
 
     try:
+        logger.debug("Appel API OpenAI/OpenRouter avec modèle: gpt-4o-mini")
         completion = await client.chat.completions.create(
             model="gpt-4o-mini",
             messages=_build_messages(cv_text, job_text),
@@ -133,8 +152,10 @@ async def analyze_profile(cv_text: str, job_text: str) -> str:
             max_tokens=900,
         )
         content = completion.choices[0].message.content or ""
+        logger.debug("Réponse API reçue (%d caractères)", len(content))
         return content.strip()
     except Exception as exc:  # noqa: BLE001
+        logger.error("Erreur lors de l'appel API: %s", exc, exc_info=True)
         log_exception(exc, logger_name="fmp.llm")
         return f"Une erreur est survenue lors de l'appel à l'IA. Détails techniques : {type(exc).__name__}"
 
@@ -215,6 +236,7 @@ async def rewrite_profile(cv_text: str, job_text: str) -> str:
         )
 
     try:
+        logger.debug("Appel API OpenAI/OpenRouter avec modèle: gpt-4o")
         completion = await client.chat.completions.create(
             model="gpt-4o",
             messages=_build_rewrite_messages(cv_text, job_text),
@@ -222,7 +244,9 @@ async def rewrite_profile(cv_text: str, job_text: str) -> str:
             max_tokens=900,
         )
         content = completion.choices[0].message.content or ""
+        logger.debug("Réponse API reçue (%d caractères)", len(content))
         return content.strip()
     except Exception as exc:  # noqa: BLE001
+        logger.error("Erreur lors de l'appel API: %s", exc, exc_info=True)
         log_exception(exc, logger_name="fmp.llm")
         return f"Une erreur est survenue lors de l'appel à l'IA. Détails techniques : {type(exc).__name__}"

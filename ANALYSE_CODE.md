@@ -41,6 +41,7 @@ fitmyprofile-1/
 ## 🔧 Stack Technique
 
 ### Backend
+
 - **FastAPI** : Framework web moderne et performant
 - **Uvicorn** : Serveur ASGI pour FastAPI
 - **Jinja2** : Moteur de templates HTML
@@ -51,11 +52,13 @@ fitmyprofile-1/
 - **pydantic-settings** : Gestion des paramètres de configuration
 
 ### Frontend
+
 - **HTML/CSS** : Interface minimaliste
 - **JavaScript vanilla** : Interactions utilisateur (overlay de chargement)
 - **Plausible Analytics** : Analytics (optionnel, via variable d'environnement)
 
 ### Déploiement
+
 - **Docker** : Containerisation
 - **Docker Compose** : Orchestration locale
 - Compatible avec **Railway/Render** pour le déploiement
@@ -65,6 +68,7 @@ fitmyprofile-1/
 ## 🎯 Fonctionnalités Principales
 
 ### 1. Analyse Gratuite (`/analyze`)
+
 - **Entrée** : CV (PDF/DOCX) + description du poste
 - **Traitement** :
   1. Validation du fichier (extension, MIME type, taille max 5 Mo)
@@ -81,6 +85,7 @@ fitmyprofile-1/
   - Compétences et mots-clés à ajouter
 
 ### 2. Version Pro (`/pro/rewrite`)
+
 - **Fonctionnalité** : Réécriture complète de sections du CV
 - **Modèle** : GPT-4.1 (plus puissant que la version gratuite)
 - **Paiement** : Intégration Stripe Checkout (ou mode fake pour dev)
@@ -95,6 +100,7 @@ fitmyprofile-1/
 ## 🔐 Sécurité et Validation
 
 ### Validation des Uploads (`upload_guard.py`)
+
 - ✅ Vérification de l'extension (`.pdf`, `.docx`)
 - ✅ Vérification du MIME type
 - ✅ Limitation de taille (configurable, défaut 5 Mo)
@@ -102,6 +108,7 @@ fitmyprofile-1/
 - ✅ Lecture par chunks pour éviter la surcharge mémoire
 
 ### Rate Limiting (`rate_limit.py`)
+
 - **Algorithme** : Token Bucket
 - **Configuration** :
   - `RATE_LIMIT_PER_MIN` : 120 requêtes/minute (défaut)
@@ -110,6 +117,7 @@ fitmyprofile-1/
 - **Limitation** : En mémoire (perdue au redémarrage)
 
 ### Logging Sécurisé (`logging_conf.py`)
+
 - ✅ Masquage automatique des clés API dans les logs
 - ✅ Filtrage des tokens Bearer
 - ✅ Format structuré avec timestamp, niveau, nom du logger
@@ -121,38 +129,41 @@ fitmyprofile-1/
 
 Toutes les configurations sont gérées via variables d'environnement (fichier `.env` ou variables système) :
 
-| Variable | Description | Défaut |
-|----------|-------------|--------|
-| `ENV` | Environnement (dev/prod) | `dev` |
-| `OPENAI_API_KEY` | Clé API OpenAI | `None` |
-| `PRICE_EUR` | Prix version Pro | `4.90` |
-| `USE_FAKE_CHECKOUT` | Bypass paiement (dev) | `True` |
-| `MAX_UPLOAD_MB` | Taille max upload | `5` |
-| `RATE_LIMIT_PER_MIN` | Limite requêtes/min | `120` |
-| `RATE_LIMIT_BURST` | Capacité rafale | `40` |
-| `LOG_LEVEL` | Niveau de log | `INFO` |
-| `STRIPE_SECRET_KEY` | Clé secrète Stripe | `None` |
-| `STRIPE_PRICE_ID` | ID prix Stripe | `None` |
-| `ANALYTICS_DOMAIN` | Domaine Plausible | `None` |
-| `PUBLIC_BASE_URL` | URL publique (pour Stripe) | `None` |
+| Variable             | Description                | Défaut |
+| -------------------- | -------------------------- | ------ |
+| `ENV`                | Environnement (dev/prod)   | `dev`  |
+| `OPENAI_API_KEY`     | Clé API OpenAI             | `None` |
+| `PRICE_EUR`          | Prix version Pro           | `4.90` |
+| `USE_FAKE_CHECKOUT`  | Bypass paiement (dev)      | `True` |
+| `MAX_UPLOAD_MB`      | Taille max upload          | `5`    |
+| `RATE_LIMIT_PER_MIN` | Limite requêtes/min        | `120`  |
+| `RATE_LIMIT_BURST`   | Capacité rafale            | `40`   |
+| `LOG_LEVEL`          | Niveau de log              | `INFO` |
+| `STRIPE_SECRET_KEY`  | Clé secrète Stripe         | `None` |
+| `STRIPE_PRICE_ID`    | ID prix Stripe             | `None` |
+| `ANALYTICS_DOMAIN`   | Domaine Plausible          | `None` |
+| `PUBLIC_BASE_URL`    | URL publique (pour Stripe) | `None` |
 
 ---
 
 ## 🛣️ Routes API
 
 ### Routes Publiques
+
 - `GET /` : Page d'accueil (landing)
 - `GET /health` : Health check (retourne `{"status": "ok"}`)
 - `GET /app` : Formulaire d'analyse gratuite
 - `POST /analyze` : Traitement de l'analyse (CV + offre)
 
 ### Routes Pro (Payantes)
+
 - `GET /pro` : Page de présentation version Pro
 - `GET /pro/rewrite` : Formulaire de réécriture Pro
 - `POST /pro/rewrite` : Traitement de la réécriture Pro
 - `POST /pro/checkout` : Création session Stripe Checkout
 
 ### Gestion d'Erreurs
+
 - `Exception Handler` : Capture toutes les exceptions non gérées et affiche `error_500.html`
 
 ---
@@ -160,18 +171,21 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 🤖 Intégration IA (`llm_client.py`)
 
 ### Analyse (`analyze_profile`)
+
 - **Modèle** : `gpt-4.1-mini`
 - **Temperature** : `0.3` (réponses plus déterministes)
 - **Max tokens** : `900`
 - **Format** : Markdown structuré avec score global
 
 ### Réécriture (`rewrite_profile`)
+
 - **Modèle** : `gpt-4.1`
 - **Temperature** : `0.4` (légèrement plus créatif)
 - **Max tokens** : `900`
 - **Format** : Markdown avec variantes de titres, accroches, expériences
 
 ### Gestion des Erreurs
+
 - ✅ Mode mock si pas de clé API configurée
 - ✅ Gestion gracieuse des erreurs OpenAI
 - ✅ Messages d'erreur utilisateur-friendly
@@ -181,10 +195,12 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 📄 Extraction de Texte (`parse_cv.py`)
 
 ### Formats Supportés
+
 - **PDF** : Via PyMuPDF (`fitz`)
 - **DOCX** : Via `python-docx`
 
 ### Fonctionnalités
+
 - Extraction de texte brut depuis les deux formats
 - Nettoyage automatique :
   - Suppression des retours chariot multiples
@@ -196,11 +212,13 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 🎨 Interface Utilisateur
 
 ### Design
+
 - **Thème** : Dark mode (fond `#0b1020`, texte `#f7f7ff`)
 - **Couleur principale** : Cyan (`#1ccad8`)
 - **Style** : Minimaliste, moderne, centré sur l'utilisateur
 
 ### Expérience Utilisateur
+
 - ✅ Overlay de chargement avec progression visuelle
 - ✅ Messages de progression dynamiques pendant l'analyse
 - ✅ Désactivation du bouton pendant le traitement (anti double-clic)
@@ -212,16 +230,19 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 🐳 Déploiement
 
 ### Docker
+
 - **Image de base** : `python:3.13-slim`
 - **Port exposé** : `8000`
 - **Commande** : `uvicorn backend.main:app --host 0.0.0.0 --port 8000`
 
 ### Docker Compose
+
 - Service unique `web`
 - Montage du fichier `.env` pour les variables d'environnement
 - Port mapping `8000:8000`
 
 ### Compatibilité
+
 - ✅ Railway
 - ✅ Render
 - ✅ Tout hébergeur supportant Docker
@@ -231,6 +252,7 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 🔍 Points d'Attention / Améliorations Possibles
 
 ### Points Forts
+
 1. ✅ Architecture claire et modulaire
 2. ✅ Sécurité : validation uploads, rate limiting, masquage PII
 3. ✅ Gestion d'erreurs robuste
@@ -239,6 +261,7 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 6. ✅ Code bien structuré avec séparation des responsabilités
 
 ### Points à Améliorer
+
 1. **Rate Limiting** : Actuellement en mémoire (perdu au redémarrage)
    - 💡 Suggestion : Utiliser Redis pour un rate limiting distribué
 2. **Gestion des Sessions** : Pas de système de session utilisateur
@@ -261,6 +284,7 @@ Toutes les configurations sont gérées via variables d'environnement (fichier `
 ## 📊 Flux de Données
 
 ### Analyse Gratuite
+
 ```
 Utilisateur → Upload CV + Offre
     ↓
@@ -278,6 +302,7 @@ Affichage résultat (score, forces, faiblesses, plan d'action)
 ```
 
 ### Version Pro
+
 ```
 Utilisateur → Clic "Version Pro"
     ↓
@@ -299,9 +324,9 @@ Affichage réécriture (titres, accroches, expériences)
 **Fit My Profile** est une application web bien structurée qui utilise l'IA pour optimiser les CV selon des offres d'emploi spécifiques. Le code est propre, modulaire, et suit les bonnes pratiques de sécurité. L'application est prête pour un déploiement en production, avec quelques améliorations possibles pour la scalabilité (cache, DB, rate limiting distribué) et la maintenabilité (tests).
 
 **Points Clés** :
+
 - ✅ MVP fonctionnel avec analyse gratuite et version payante
 - ✅ Sécurité : validation uploads, rate limiting, masquage PII
 - ✅ Architecture modulaire et extensible
 - ✅ Configuration flexible via variables d'environnement
 - ✅ Prêt pour déploiement Docker
-
