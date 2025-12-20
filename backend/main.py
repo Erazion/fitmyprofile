@@ -229,12 +229,17 @@ async def pro_rewrite_form(request: Request):
         settings.USE_FAKE_CHECKOUT or request.query_params.get("paid") == "1"
     )
 
-    # Si l'accès est accordé et que les données sont dans la session, traiter directement
-    if (
+    # Vérifier si les données sont disponibles en session
+    has_session_data = (
         access_granted
         and "cv_text" in request.session
         and "job_text" in request.session
-    ):
+        and request.session.get("cv_text")
+        and request.session.get("job_text")
+    )
+
+    # Si l'accès est accordé et que les données sont dans la session, traiter directement
+    if has_session_data:
         cv_text = request.session.get("cv_text", "")
         job_text = request.session.get("job_text", "")
 
@@ -265,6 +270,7 @@ async def pro_rewrite_form(request: Request):
         {
             "access_granted": access_granted,
             "use_fake_checkout": settings.USE_FAKE_CHECKOUT,
+            "has_session_data": has_session_data,
         },
     )
 
