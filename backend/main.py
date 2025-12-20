@@ -157,23 +157,35 @@ async def pro_rewrite(
             status_code=status.HTTP_402_PAYMENT_REQUIRED,
         )
 
-    # Vérifier d'abord la session pour les données
+    # Priorité aux nouveaux fichiers uploadés, puis fallback sur la session
     cv_text: str | None = None
     job_text: str | None = None
 
-    if "cv_text" in request.session and "job_text" in request.session:
-        cv_text = request.session["cv_text"]
-        job_text = request.session["job_text"]
-    elif cv_file and job_offer:
-        # Si pas de session, utiliser les données du formulaire
+    # 1. Vérifier d'abord si de nouveaux fichiers sont fournis
+    if cv_file and cv_file.filename:
+        # Nouveau CV fourni : l'utiliser
         file_bytes = await validate_and_read_upload(cv_file)
         cv_text = await extract_text_from_validated_upload(cv_file, file_bytes)
+    elif "cv_text" in request.session:
+        # Pas de nouveau CV : utiliser la session si disponible
+        cv_text = request.session["cv_text"]
+
+    # 2. Vérifier l'offre d'emploi (nouvelle ou session)
+    if job_offer and job_offer.strip():
+        # Nouvelle offre fournie : l'utiliser
         job_text = clean_text(job_offer)
-        # Stocker dans la session pour utilisation ultérieure
+    elif "job_text" in request.session:
+        # Pas de nouvelle offre : utiliser la session si disponible
+        job_text = request.session["job_text"]
+
+    # 3. Mettre à jour la session avec les nouvelles données si fournies
+    if cv_file and cv_file.filename and cv_text:
         request.session["cv_text"] = cv_text
+    if job_offer and job_offer.strip() and job_text:
         request.session["job_text"] = job_text
-    else:
-        # Aucune donnée disponible
+
+    # 4. Vérifier qu'on a au moins les données nécessaires
+    if not cv_text or not job_text:
         return render_template(
             "pro_rewrite.html",
             request,
